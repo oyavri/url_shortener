@@ -12,10 +12,18 @@ urlShorten.get("/:shortUrl", async (ctx) => {
 
   try {
     const urlRecord = await getUrlRecord(dbConnection, ctx.params.shortUrl);
-    const shortUrl = urlRecord.shortUrl;
     
+    if (urlRecord === undefined) {
+      ctx.response.status = Status.NotFound;
+      ctx.response.body = {
+        "error": "There is no such short URL."
+      }
+
+      return;
+    }
+
     ctx.response.status = Status.Found;
-    ctx.response.redirect(shortUrl);
+    ctx.response.redirect(urlRecord.longUrl);
   } catch (error) {
     console.error(error);
     dbConnection.release();
@@ -50,7 +58,6 @@ urlShorten.post("/", async (ctx) => {
 
   ctx.response.status = Status.Created;
   ctx.response.body = {
-    "success": true,
     ...shortUrl
   };
   ctx.response.type = "json";

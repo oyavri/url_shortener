@@ -6,10 +6,13 @@ export async function createShortUrl(dbConnection: PoolClient, url: URL, length:
   const sequence = generateSequence(length);
 
   try {
-    const result = await dbConnection.queryObject<UrlModel>(
-      "INSERT INTO url (long_url, short_url) VALUES($longUrl, $shortUrl) RETURNING *",
-      { longUrl: url.href , shortUrl: sequence }
-    );
+    const result = await dbConnection.queryObject<UrlModel>({
+      camelCase: true,
+      text: "INSERT INTO url (long_url, short_url) VALUES($longUrl, $shortUrl) RETURNING *",
+      args: { longUrl: url.href , shortUrl: sequence }
+    });
+
+    console.log(result)
     return result.rows[0];
   } catch (error) {
     console.error(error);
@@ -30,13 +33,12 @@ function generateSequence(length: number): string {
 
 export async function getUrlRecord(dbConnection: PoolClient, shortUrl: string): Promise<UrlModel> {
   try {
-    const result = await dbConnection.queryObject<UrlModel>(
-      "SELECT * FROM url WHERE short_url = $shortUrl",
-      { shortUrl: shortUrl }
-    );
+    const result = await dbConnection.queryObject<UrlModel>({
+      camelCase: true,
+      text: "SELECT * FROM url WHERE short_url = $shortUrl",
+      args: { shortUrl: shortUrl }
+    });
 
-    // Check if there is a long url for given short url
-    // if not, return NotFound
     return result.rows[0];
   } catch (error) {
     console.error(error);
