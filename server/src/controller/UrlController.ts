@@ -7,14 +7,12 @@ import { URL_LENGTH } from "../config.ts";
 export const urlShorten = new Router();
   
 urlShorten.get("/:shortUrl", async (ctx) => {
-    const shortUrl = ctx.params.shortUrl;
-
     try {
-        const urlRecord = await getUrlRecord(ctx, shortUrl);
-        const baseUrl = urlRecord.base_url;
+        const urlRecord = await getUrlRecord(ctx, ctx.params.shortUrl);
+        const shortUrl = urlRecord.shortUrl;
         
         ctx.response.status = Status.Found;
-        ctx.response.redirect(baseUrl);
+        ctx.response.redirect(shortUrl);
     } catch (error) {
         console.error(error);
         ctx.state.db.connection.release();

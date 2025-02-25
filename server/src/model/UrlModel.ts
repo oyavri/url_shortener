@@ -1,6 +1,6 @@
 export interface UrlModel {
     id: number,
-    base_url: string,
-    redirect_url: string,
+    shortUrl: string,
+    longUrl: string,
     created_at: Date
 };

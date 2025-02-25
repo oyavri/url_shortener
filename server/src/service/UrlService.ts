@@ -17,8 +17,8 @@ export async function createShortUrl(ctx: Context, url: URL, length: number): Pr
     try {
         const connection: PoolClient = ctx.state.db.connection;
         const result = await connection.queryObject<UrlModel>(
-            "INSERT INTO url (base_url, redirect_url) VALUES($base_url, $redirect_url) RETURNING *",
-            { base_url: url.href , redirect_url: sequence }
+            "INSERT INTO url (long_url, short_url) VALUES($longUrl, $shortUrl) RETURNING *",
+            { longUrl: url.href , shortUrl: sequence }
         );
         return result.rows[0];
     } catch (error) {
@@ -31,8 +31,8 @@ export async function getUrlRecord(ctx: Context, shortUrl: string): Promise<UrlM
     try {
         const connection: PoolClient = ctx.state.db.connection;
         const result = await connection.queryObject<UrlModel>(
-            "SELECT * FROM url WHERE redirect_url = $redirect_url",
-            { redirect_url: shortUrl }
+            "SELECT * FROM url WHERE short_url = $shortUrl",
+            { shortUrl: shortUrl }
         );
         return result.rows[0];
     } catch (error) {
