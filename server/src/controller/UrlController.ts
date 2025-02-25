@@ -4,6 +4,7 @@ import { createShortUrl, getUrlRecord } from "../service/UrlService.ts";
 import { UrlModel } from "../model/UrlModel.ts";
 import { GENERATED_URL_LENGTH } from "../config.ts";
 import { PoolClient } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { CollisionError } from "../model/CollisionError.ts";
 
 export const urlShorten = new Router();
   
@@ -51,7 +52,9 @@ urlShorten.post("/", async (ctx) => {
   try {
     shortUrl = await createShortUrl(dbConnection, givenUrl, GENERATED_URL_LENGTH);
   } catch (error) {
-    console.error(error);
+    if (error instanceof CollisionError) {
+      console.error(error.message);
+    }
     dbConnection.release();
     return ctx.throw(Status.InternalServerError, "Internal server error");
   }
@@ -60,6 +63,6 @@ urlShorten.post("/", async (ctx) => {
   ctx.response.body = {
     ...shortUrl
   };
-  ctx.response.type = "json";
+  ctx.response.type = "application/json";
   return;
 });
