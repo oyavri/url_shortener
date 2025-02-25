@@ -1,1 +1,1 @@
-export const GENERATED_URL_LENGTH = 8;
+export const GENERATED_URL_LENGTH = 10;
