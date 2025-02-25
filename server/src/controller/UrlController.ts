@@ -2,7 +2,7 @@ import { Router } from "@oak/oak/router";
 import { Status } from "https://jsr.io/@oak/oak/17.1.4/deps.ts";
 import { createShortUrl, getUrlRecord } from "../service/UrlService.ts";
 import { UrlModel } from "../model/UrlModel.ts";
-import { URL_LENGTH } from "../config.ts";
+import { GENERATED_URL_LENGTH } from "../config.ts";
 
 export const urlShorten = new Router();
   
@@ -37,7 +37,7 @@ urlShorten.post("/", async (ctx) => {
     let shortUrl: UrlModel;
 
     try {
-        shortUrl = await createShortUrl(ctx, givenUrl, URL_LENGTH);
+        shortUrl = await createShortUrl(ctx, givenUrl, GENERATED_URL_LENGTH);
     } catch (error) {
         console.error(error);
         ctx.state.db.connection.release();
