@@ -19,9 +19,10 @@ app.use(async (ctx, next) => {
 });
 
 app.use(async (ctx, next) => {
-    ctx = await getDatabaseConnection(ctx);
-    await next();
+  ctx = await getDatabaseConnection(ctx);
+  await next();
 })
+
 app.use(urlShorten.routes());
 
 await app.listen({ port: 8000 });

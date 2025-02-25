@@ -8,51 +8,51 @@ import { PoolClient } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 export const urlShorten = new Router();
   
 urlShorten.get("/:shortUrl", async (ctx) => {
-    const dbConnection: PoolClient = ctx.state.db.connection;
+  const dbConnection: PoolClient = ctx.state.db.connection;
 
-    try {
-        const urlRecord = await getUrlRecord(dbConnection, ctx.params.shortUrl);
-        const shortUrl = urlRecord.shortUrl;
-        
-        ctx.response.status = Status.Found;
-        ctx.response.redirect(shortUrl);
-    } catch (error) {
-        console.error(error);
-        dbConnection.release();
-        return ctx.throw(Status.InternalServerError, "Internal server error");
-    }
+  try {
+    const urlRecord = await getUrlRecord(dbConnection, ctx.params.shortUrl);
+    const shortUrl = urlRecord.shortUrl;
+    
+    ctx.response.status = Status.Found;
+    ctx.response.redirect(shortUrl);
+  } catch (error) {
+    console.error(error);
+    dbConnection.release();
+    return ctx.throw(Status.InternalServerError, "Internal server error");
+  }
 });
 
 urlShorten.post("/", async (ctx) => {
-    if (!ctx.request.hasBody) {
-        ctx.throw(Status.BadRequest, "Bad Request");
-    }
+  if (!ctx.request.hasBody) {
+    ctx.throw(Status.BadRequest, "Bad Request");
+  }
 
-    const body = ctx.request.body;
+  const body = ctx.request.body;
 
-    if (body.type() !== "json") {
-        ctx.throw(Status.BadRequest, "Unsupported format, only JSON is supported");
-    }
+  if (body.type() !== "json") {
+    ctx.throw(Status.BadRequest, "Unsupported format, only JSON is supported");
+  }
 
-    const json = await body.json();
-    const givenUrl = new URL(json.url);
+  const json = await body.json();
+  const givenUrl = new URL(json.url);
 
-    let shortUrl: UrlModel;
-    const dbConnection: PoolClient = ctx.state.db.connection;
+  let shortUrl: UrlModel;
+  const dbConnection: PoolClient = ctx.state.db.connection;
 
-    try {
-        shortUrl = await createShortUrl(dbConnection, givenUrl, GENERATED_URL_LENGTH);
-    } catch (error) {
-        console.error(error);
-        dbConnection.release();
-        return ctx.throw(Status.InternalServerError, "Internal server error");
-    }
+  try {
+    shortUrl = await createShortUrl(dbConnection, givenUrl, GENERATED_URL_LENGTH);
+  } catch (error) {
+    console.error(error);
+    dbConnection.release();
+    return ctx.throw(Status.InternalServerError, "Internal server error");
+  }
 
-    ctx.response.status = Status.Created;
-    ctx.response.body = {
-        "success": true,
-        ...shortUrl
-    };
-    ctx.response.type = "json";
-    return;
+  ctx.response.status = Status.Created;
+  ctx.response.body = {
+    "success": true,
+    ...shortUrl
+  };
+  ctx.response.type = "json";
+  return;
 });
