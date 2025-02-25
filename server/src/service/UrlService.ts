@@ -1,9 +1,8 @@
-import { Context } from "@oak/oak/context";
 import { PoolClient } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { nanoid } from "npm:nanoid";
 import { UrlModel } from "../model/UrlModel.ts";
 
-export async function createShortUrl(ctx: Context, url: URL, length: number): Promise<UrlModel> {
+export async function createShortUrl(dbConnection: PoolClient, url: URL, length: number): Promise<UrlModel> {
     // To do: add customized alphabet
     // const nanoid = customAlphabet(alphabet, length)
     let sequence = "";
@@ -15,8 +14,7 @@ export async function createShortUrl(ctx: Context, url: URL, length: number): Pr
     }
 
     try {
-        const connection: PoolClient = ctx.state.db.connection;
-        const result = await connection.queryObject<UrlModel>(
+        const result = await dbConnection.queryObject<UrlModel>(
             "INSERT INTO url (long_url, short_url) VALUES($longUrl, $shortUrl) RETURNING *",
             { longUrl: url.href , shortUrl: sequence }
         );
@@ -27,10 +25,9 @@ export async function createShortUrl(ctx: Context, url: URL, length: number): Pr
     }
 }
 
-export async function getUrlRecord(ctx: Context, shortUrl: string): Promise<UrlModel> {
+export async function getUrlRecord(dbConnection: PoolClient, shortUrl: string): Promise<UrlModel> {
     try {
-        const connection: PoolClient = ctx.state.db.connection;
-        const result = await connection.queryObject<UrlModel>(
+        const result = await dbConnection.queryObject<UrlModel>(
             "SELECT * FROM url WHERE short_url = $shortUrl",
             { shortUrl: shortUrl }
         );

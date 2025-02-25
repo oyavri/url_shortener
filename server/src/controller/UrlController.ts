@@ -3,19 +3,22 @@ import { Status } from "https://jsr.io/@oak/oak/17.1.4/deps.ts";
 import { createShortUrl, getUrlRecord } from "../service/UrlService.ts";
 import { UrlModel } from "../model/UrlModel.ts";
 import { GENERATED_URL_LENGTH } from "../config.ts";
+import { PoolClient } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 
 export const urlShorten = new Router();
   
 urlShorten.get("/:shortUrl", async (ctx) => {
+    const dbConnection: PoolClient = ctx.state.db.connection;
+
     try {
-        const urlRecord = await getUrlRecord(ctx, ctx.params.shortUrl);
+        const urlRecord = await getUrlRecord(dbConnection, ctx.params.shortUrl);
         const shortUrl = urlRecord.shortUrl;
         
         ctx.response.status = Status.Found;
         ctx.response.redirect(shortUrl);
     } catch (error) {
         console.error(error);
-        ctx.state.db.connection.release();
+        dbConnection.release();
         return ctx.throw(Status.InternalServerError, "Internal server error");
     }
 });
@@ -35,12 +38,13 @@ urlShorten.post("/", async (ctx) => {
     const givenUrl = new URL(json.url);
 
     let shortUrl: UrlModel;
+    const dbConnection: PoolClient = ctx.state.db.connection;
 
     try {
-        shortUrl = await createShortUrl(ctx, givenUrl, GENERATED_URL_LENGTH);
+        shortUrl = await createShortUrl(dbConnection, givenUrl, GENERATED_URL_LENGTH);
     } catch (error) {
         console.error(error);
-        ctx.state.db.connection.release();
+        dbConnection.release();
         return ctx.throw(Status.InternalServerError, "Internal server error");
     }
 
