@@ -1,6 +1,6 @@
 import { Application } from "jsr:@oak/oak/application";
 import { urlShorten } from "./controller/UrlController.ts";
-import { getDatabaseConnection } from "./middleware/GetDatabaseConnection.ts";
+import { hookDatabaseConnection } from "./middleware/HookDatabaseConnection.ts";
 
 const app = new Application();
 
@@ -19,7 +19,7 @@ app.use(async (ctx, next) => {
 });
 
 app.use(async (ctx, next) => {
-  ctx = await getDatabaseConnection(ctx);
+  await hookDatabaseConnection(ctx);
   await next();
 })
 

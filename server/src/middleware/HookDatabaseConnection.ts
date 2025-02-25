@@ -15,11 +15,9 @@ const dbPool = new Pool(
   true
 );
 
-export async function getDatabaseConnection(ctx: Context): Promise<Context> {
+export async function hookDatabaseConnection(ctx: Context) {
     using client = await dbPool.connect();
     ctx.state.db = {
         connection: client
     };
-
-    return ctx;
 }
