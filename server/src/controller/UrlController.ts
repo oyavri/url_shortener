@@ -38,12 +38,20 @@ urlShorten.post("/", async (ctx) => {
   }
 
   const body = ctx.request.body;
-
+  
   if (body.type() !== "json") {
     ctx.throw(Status.BadRequest, "Unsupported format, only JSON is supported");
   }
 
   const json = await body.json();
+  if (!json.url) {
+    ctx.throw(Status.BadRequest, "URL field must be provided");
+  }
+  
+  if (json.url === undefined) {
+    ctx.throw(Status.BadRequest, "An URL must be specified to create short URL");
+  }
+
   const givenUrl = new URL(json.url);
 
   let shortUrl: UrlModel;

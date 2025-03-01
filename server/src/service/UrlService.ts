@@ -2,6 +2,7 @@ import { PoolClient, PostgresError } from "https://deno.land/x/postgres@v0.19.3/
 import { nanoid } from "npm:nanoid";
 import { UrlModel } from "../model/UrlModel.ts";
 import { CollisionError } from "../model/CollisionError.ts";
+import db from "https://jsr.io/@std/media-types/1.1.0/vendor/db.ts";
 
 export async function createShortUrl(dbConnection: PoolClient, url: URL, length: number, maxRetries: number = 5): Promise<UrlModel> {
   for (let attempts = 0; attempts < maxRetries; attempts++) {
@@ -43,8 +44,16 @@ export async function getUrlRecord(dbConnection: PoolClient, shortUrl: string): 
     const result = await dbConnection.queryObject<UrlModel>({
       camelCase: true,
       text: "SELECT * FROM url WHERE short_url = $shortUrl;",
-      args: { shortUrl: shortUrl }
+      args: { shortUrl }
     });
+
+    if (result.rows[0] !== undefined) {
+        await dbConnection.queryObject<UrlModel>({
+            camelCase: true,
+            text: "UPDATE url SET click_count = click_count + 1 WHERE short_url = $shortUrl;",
+            args: { shortUrl }
+        })
+    }
 
     return result.rows[0];
   } catch (error) {
