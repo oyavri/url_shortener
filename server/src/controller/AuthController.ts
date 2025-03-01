@@ -17,6 +17,11 @@ authRouter.post("/register", async (ctx) => {
   }
 
   const json = await body.json();
+
+  if (!json.username ||!json.password || !json.email) {
+    ctx.throw(Status.BadRequest, "All fields are required");
+  }
+
   const userCandidate: UserModel = {
     username: json.username,
     password: json.password,
@@ -26,8 +31,13 @@ authRouter.post("/register", async (ctx) => {
   const dbConnection: PoolClient = ctx.state.db.connection;
 
   try {
-    registerUser(dbConnection, userCandidate);
-    
+    const registeredUser = registerUser(dbConnection, userCandidate);
+    ctx.response.body = {
+        "message": "User created successfully!",
+    }
+    ctx.response.status = Status.Created;
+    ctx.response.type = "application/json";
+    return;
   } catch (error) {
     // user already exists!
     if (error instanceof PostgresError && error.fields.code == "23505") {

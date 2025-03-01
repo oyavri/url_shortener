@@ -26,7 +26,7 @@ app.use(async (ctx, next) => {
 })
 
 // Authentication middleware
-app.use(authMiddleware);
+// app.use(authMiddleware);
 
 app.use(urlShorten.routes());
 
