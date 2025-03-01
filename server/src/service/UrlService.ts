@@ -10,7 +10,7 @@ export async function createShortUrl(dbConnection: PoolClient, url: URL, length:
 
       const result = await dbConnection.queryObject<UrlModel>({
         camelCase: true,
-        text: "INSERT INTO url (long_url, short_url) VALUES($longUrl, $shortUrl) RETURNING *",
+        text: "INSERT INTO url (long_url, short_url) VALUES($longUrl, $shortUrl) RETURNING *;",
         args: { longUrl: url.href , shortUrl: sequence }
       });
 
@@ -42,7 +42,7 @@ export async function getUrlRecord(dbConnection: PoolClient, shortUrl: string): 
   try {
     const result = await dbConnection.queryObject<UrlModel>({
       camelCase: true,
-      text: "SELECT * FROM url WHERE short_url = $shortUrl",
+      text: "SELECT * FROM url WHERE short_url = $shortUrl;",
       args: { shortUrl: shortUrl }
     });
 

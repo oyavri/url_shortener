@@ -11,7 +11,7 @@ authRouter.post("/register", async (ctx) => {
     ctx.throw(Status.BadRequest, "Bad Request");
   }
 
-  const body = ctx.request.body
+  const body = ctx.request.body;
   if (body.type() !== "json") {
     ctx.throw(Status.BadRequest, "Unsupported format, only JSON is supported");
   }
@@ -27,6 +27,7 @@ authRouter.post("/register", async (ctx) => {
 
   try {
     registerUser(dbConnection, userCandidate);
+    
   } catch (error) {
     // user already exists!
     if (error instanceof PostgresError && error.fields.code == "23505") {
