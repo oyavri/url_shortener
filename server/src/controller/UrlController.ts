@@ -16,10 +16,10 @@ urlShorten.get("/:shortUrl", async (ctx) => {
     
     if (urlRecord === undefined) {
       ctx.response.status = Status.NotFound;
+      ctx.response.type = "application/json";
       ctx.response.body = {
-        "error": "There is no such short URL."
-      }
-
+        "error": "There is no such short URL"
+      };
       return;
     }
 
@@ -27,31 +27,52 @@ urlShorten.get("/:shortUrl", async (ctx) => {
     ctx.response.redirect(urlRecord.longUrl);
   } catch (error) {
     console.error(error);
-    dbConnection.release();
-    return ctx.throw(Status.InternalServerError, "Internal server error");
+    ctx.response.status = Status.InternalServerError;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "Internal server error"
+    }
+
+    return;
   }
 });
 
 urlShorten.post("/", async (ctx) => {
   if (!ctx.request.hasBody) {
-    ctx.throw(Status.BadRequest, "Bad Request");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "No payload found"
+    };
   }
 
   const body = ctx.request.body;
   
   if (body.type() !== "json") {
-    ctx.throw(Status.BadRequest, "Unsupported format, only JSON is supported");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "Unsupported format, only JSON is supported"
+    };
   }
 
   const json = await body.json();
-  if (!json.url) {
-    ctx.throw(Status.BadRequest, "URL field must be provided");
+  if (json.url === undefined) {
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "URL field must be provided"
+    };
   }
   
-  if (json.url === undefined) {
-    ctx.throw(Status.BadRequest, "An URL must be specified to create short URL");
+  if (!json.url) {
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "An URL must be specified to create short URL"
+    };
   }
-
+  
   const givenUrl = new URL(json.url);
 
   let shortUrl: UrlModel;
@@ -61,10 +82,9 @@ urlShorten.post("/", async (ctx) => {
     shortUrl = await createShortUrl(dbConnection, givenUrl, GENERATED_URL_LENGTH);
   } catch (error) {
     if (error instanceof CollisionError) {
-      console.error(error.message);
+      console.error(error);
     }
-    dbConnection.release();
-    return ctx.throw(Status.InternalServerError, "Internal server error");
+    return;
   }
 
   ctx.response.status = Status.Created;
