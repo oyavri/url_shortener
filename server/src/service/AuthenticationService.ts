@@ -42,12 +42,16 @@ export async function loginUser(dbConnection: PoolClient, username: string, pass
     });
 
     if (userCandidate.rows[0] === undefined) {
-      throw new UserNotFoundError("User does not exist");
+      throw new UserNotFoundError("User does not exist or provided credentials are wrong");
     }
 
     const isValid = await bcrypt.compare(password, userCandidate.rows[0].password);
+
+    if (isValid) {
+      throw new UserNotFoundError("User does not exist or provided credentials are wrong");
+    }
+    
     console.log(userCandidate);
-    console.log(isValid);
     
     return userCandidate.rows[0];
   } catch (error) {

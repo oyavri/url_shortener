@@ -10,18 +10,31 @@ export const authRouter = new Router();
 
 authRouter.post("/register", async (ctx) => {
   if (!ctx.request.hasBody) {
-    ctx.throw(Status.BadRequest, "Bad Request");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "No payload found"
+    };
   }
 
   const body = ctx.request.body;
+  
   if (body.type() !== "json") {
-    ctx.throw(Status.BadRequest, "Unsupported format, only JSON is supported");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "Unsupported format, only JSON is supported"
+    };
   }
 
   const json = await body.json();
 
   if (!json.username ||!json.password || !json.email) {
-    ctx.throw(Status.BadRequest, "All fields are required");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+      "error": "All fields are required"
+    };
   }
 
   const userCandidate: UserModel = {
@@ -35,13 +48,12 @@ authRouter.post("/register", async (ctx) => {
   try {
     const registeredUser = await registerUser(dbConnection, userCandidate);
 
+    ctx.response.status = Status.Created;
+    ctx.response.type = "application/json";
     ctx.response.body = {
         "message": "User created successfully!",
     }
-    ctx.response.status = Status.Created;
-    ctx.response.type = "application/json";
 
-    dbConnection.release();
     return;
   } catch (error) {
     // user already exists!
@@ -51,40 +63,49 @@ authRouter.post("/register", async (ctx) => {
       ctx.response.body = {
         "error": "User is already registered"
       };
-
-      dbConnection.release();
       return;
     }
 
-    dbConnection.release();
     throw error;
   }
 });
 
 authRouter.post("/login", async (ctx) => {
   if (!ctx.request.hasBody) {
-    ctx.throw(Status.BadRequest, "Bad Request");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "No payload found"
+    };
   }
 
   const body = ctx.request.body;
+  
   if (body.type() !== "json") {
-    ctx.throw(Status.BadRequest, "Unsupported format, only JSON is supported");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+        "error": "Unsupported format, only JSON is supported"
+    };
   }
-
   const json = await body.json();
 
   if (!json.username || !json.password) {
-    ctx.throw(Status.BadRequest, "Username and password required");
+    ctx.response.status = Status.BadRequest;
+    ctx.response.type = "application/json";
+    ctx.response.body = {
+      "error": "Username and password required"
+    };
   }
 
   const dbConnection: PoolClient = ctx.state.db.connection;
   try {
     const user = loginUser(dbConnection, json.username, json.password);
+    ctx.response.status = Status.OK;
+    ctx.response.type = "application/json";
     ctx.response.body = {
       "message": "User logged in successfully",
     }
-    ctx.response.status = Status.OK;
-    ctx.response.type = "application/json";
 
     return;
   } catch (error) {
