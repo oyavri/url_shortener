@@ -83,6 +83,11 @@ urlShorten.post("/", async (ctx) => {
   } catch (error) {
     if (error instanceof CollisionError) {
       console.error(error);
+      ctx.response.status = Status.InternalServerError;
+      ctx.response.type = "application/json";
+      ctx.response.body = {
+          "error": "Internal server error"
+      }
     }
     return;
   }
