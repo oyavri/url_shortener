@@ -69,16 +69,16 @@ urlShorten.post("/", async (ctx) => {
     ctx.response.status = Status.BadRequest;
     ctx.response.type = "application/json";
     ctx.response.body = {
-        "error": "An URL must be specified to create short URL"
+        "error": "A URL must be specified to create short URL"
     };
   }
   
-  const givenUrl = new URL(json.url);
-
+  
   let shortUrl: UrlModel;
   const dbConnection: PoolClient = ctx.state.db.connection;
-
+  
   try {
+    const givenUrl = new URL(json.url);
     shortUrl = await createShortUrl(dbConnection, givenUrl, GENERATED_URL_LENGTH);
   } catch (error) {
     if (error instanceof CollisionError) {
@@ -93,9 +93,9 @@ urlShorten.post("/", async (ctx) => {
   }
 
   ctx.response.status = Status.Created;
+  ctx.response.type = "application/json";
   ctx.response.body = {
     ...shortUrl
   };
-  ctx.response.type = "application/json";
   return;
 });
