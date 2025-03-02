@@ -23,7 +23,6 @@ export async function registerUser(dbConnection: PoolClient, userCandidate: User
     return createdUser.rows[0];
   } catch (error) { 
       if (error instanceof PostgresError && error.fields.code == "23505") {
-        console.error("Multiple registration on same username");
         throw new UserAlreadyExistsError("User already exists");
       }
 
@@ -31,7 +30,7 @@ export async function registerUser(dbConnection: PoolClient, userCandidate: User
   }
 }
 
-export async function loginUser(dbConnection: PoolClient, username: string, password: string) {
+export async function loginUser(dbConnection: PoolClient, username: string, password: string): Promise<UserModel> {
   try {
     const userCandidate = await dbConnection.queryObject<UserModel>({
       camelCase: true,
@@ -47,7 +46,7 @@ export async function loginUser(dbConnection: PoolClient, username: string, pass
 
     const isValid = await bcrypt.compare(password, userCandidate.rows[0].password);
 
-    if (isValid) {
+    if (!isValid) {
       throw new UserNotFoundError("User does not exist or provided credentials are wrong");
     }
     
@@ -55,6 +54,6 @@ export async function loginUser(dbConnection: PoolClient, username: string, pass
     
     return userCandidate.rows[0];
   } catch (error) {
-      console.error(error);
+    throw error;
   }
 }

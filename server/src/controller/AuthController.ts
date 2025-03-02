@@ -100,7 +100,8 @@ authRouter.post("/login", async (ctx) => {
 
   const dbConnection: PoolClient = ctx.state.db.connection;
   try {
-    const user = loginUser(dbConnection, json.username, json.password);
+    const user = await loginUser(dbConnection, json.username, json.password);
+
     ctx.response.status = Status.OK;
     ctx.response.type = "application/json";
     ctx.response.body = {
@@ -113,10 +114,11 @@ authRouter.post("/login", async (ctx) => {
       ctx.response.status = Status.NotFound;
       ctx.response.type = "application/json";
       ctx.response.body = {
-        "error": "User not found"
+        "error": "User does not exist or provided credentials are wrong"
       };
-
+      return;
     }
+    
     console.error(error);
   }
 });
