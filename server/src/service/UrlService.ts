@@ -42,21 +42,9 @@ export async function getUrlRecord(dbConnection: PoolClient, shortUrl: string): 
   try {
     const result = await dbConnection.queryObject<UrlModel>({
       camelCase: true,
-      text: "SELECT * FROM url WHERE short_url = $shortUrl;",
+      text: "UPDATE url SET click_count = click_count + 1 WHERE short_url = $shortUrl RETURNING *;",
       args: { shortUrl }
     });
-
-    // This is a bad idea to update the statistics in every request
-    // it would be better to update the statistics batch by batch
-    // however, since this is only for educational purposes
-    // I will have it this way. 
-    if (result.rows[0] !== undefined) {
-        await dbConnection.queryObject<UrlModel>({
-            camelCase: true,
-            text: "UPDATE url SET click_count = click_count + 1 WHERE short_url = $shortUrl;",
-            args: { shortUrl }
-        });
-    }
 
     return result.rows[0];
   } catch (error) {
