@@ -14,13 +14,20 @@ app.addEventListener("listen", ({ port, secure }) => {
 
 // Logger
 app.use(async (ctx, next) => {
-  await next();
   console.log(`${ctx.request.method} ${ctx.request.url}`);
   if (ctx.request.hasBody) {
-    console.log("---- Request ----");
+    console.log("----- REQUEST -----");
     console.log(await ctx.request.body.json());
-    console.log("-----------------");
+    console.log("-------------------");
   }
+  
+  await next();
+  
+  if (ctx.request.hasBody) {
+    console.log("---- RESPONSE -----");
+    console.log(ctx.response.body);
+    console.log("-------------------");
+  }  
 });
 
 // Pass database connection to the context of the request
